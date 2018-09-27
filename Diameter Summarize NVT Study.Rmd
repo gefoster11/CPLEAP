@@ -1,0 +1,70 @@
+---
+title: "NVT Diameter Script"
+author: "Glen Foster"
+date: '2018-09-06'
+output: html_document
+---
+
+#This script loads a .csv file outputed from edge tracking software which includes a 83 row header followed by time, diameter, velocity etc. data.  The time and diameter data are extracted and for the purpose of the NVT study, 60s summary statistics are extracted for baseline (time 0-60s), 15 mmHg LBNP (time 60-120s), 30 mmHg LBNP (time 120-180s), and 45 mmHg LBNP (time 180-240s).  Pre and Post data files are loaded and a single summary file is outputed.  To use this script you must load both the pre and post data files and change the file path and name of the outputed file.  Ensure that the filename contains the subject ID.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load CSV File
+
+```{r, echo = FALSE}
+
+ID <- "NVT29" # set your subject ID here.
+f_out <- paste(ID, "_diameter_summary.csv", sep = "")
+file_pre <- file.choose()
+file_post <- file.choose()
+
+data_pre <- read.csv(file_pre, header = TRUE, skip = 83)
+data_post <- read.csv(file_post, header = TRUE, skip = 83)
+
+data_pre <- data_pre[,1:2]
+data_post <- data_post[,1:2]
+```
+
+#
+```{r, echo = FALSE}
+library(dplyr)
+```
+
+#Calculate Count, Mean, Median, SD, Max, and Min
+```{r, echo = FALSE}
+#PRE
+pre_baseline_summary <- summarise(filter(data_pre, Time..sec. >= 0 & Time..sec. < 60), diameter_count = length(Diameter..cm.), diameter_mean = mean(Diameter..cm.), diameter_median = median(Diameter..cm.), diameter_SD = sd(Diameter..cm.), diameter_max = max(Diameter..cm.), diameter_min = min(Diameter..cm.))
+
+pre_15_summary <- summarise(filter(data_pre, Time..sec. >= 60 & Time..sec. < 120), diameter_count = length(Diameter..cm.), diameter_mean = mean(Diameter..cm.), diameter_median = median(Diameter..cm.), diameter_SD = sd(Diameter..cm.), diameter_max = max(Diameter..cm.), diameter_min = min(Diameter..cm.))
+
+pre_30_summary <- summarise(filter(data_pre, Time..sec. >= 120 & Time..sec. < 180), diameter_count = length(Diameter..cm.), diameter_mean = mean(Diameter..cm.), diameter_median = median(Diameter..cm.), diameter_SD = sd(Diameter..cm.), diameter_max = max(Diameter..cm.), diameter_min = min(Diameter..cm.))
+
+pre_45_summary <- summarise(filter(data_pre, Time..sec. >= 180 & Time..sec. < 240), diameter_count = length(Diameter..cm.), diameter_mean = mean(Diameter..cm.), diameter_median = median(Diameter..cm.), diameter_SD = sd(Diameter..cm.), diameter_max = max(Diameter..cm.), diameter_min = min(Diameter..cm.))
+
+pre_summary <- rbind(pre_baseline_summary, pre_15_summary, pre_30_summary, pre_45_summary)
+
+pre_summary <- mutate(pre_summary, ID = ID, condition = "PRE", stage = c("0_LBNP", "15_LBNP", "30_LBNP", "45_LBNP"))
+
+#POST
+post_baseline_summary <- summarise(filter(data_post, Time..sec. >= 0 & Time..sec. < 60), diameter_count = length(Diameter..cm.), diameter_mean = mean(Diameter..cm.), diameter_median = median(Diameter..cm.), diameter_SD = sd(Diameter..cm.), diameter_max = max(Diameter..cm.), diameter_min = min(Diameter..cm.))
+
+post_15_summary <- summarise(filter(data_post, Time..sec. >= 60 & Time..sec. < 120), diameter_count = length(Diameter..cm.), diameter_mean = mean(Diameter..cm.), diameter_median = median(Diameter..cm.), diameter_SD = sd(Diameter..cm.), diameter_max = max(Diameter..cm.), diameter_min = min(Diameter..cm.))
+
+post_30_summary <- summarise(filter(data_post, Time..sec. >= 120 & Time..sec. < 180), diameter_count = length(Diameter..cm.), diameter_mean = mean(Diameter..cm.), diameter_median = median(Diameter..cm.), diameter_SD = sd(Diameter..cm.), diameter_max = max(Diameter..cm.), diameter_min = min(Diameter..cm.))
+
+post_45_summary <- summarise(filter(data_post, Time..sec. >= 180 & Time..sec. < 240), diameter_count = length(Diameter..cm.), diameter_mean = mean(Diameter..cm.), diameter_median = median(Diameter..cm.), diameter_SD = sd(Diameter..cm.), diameter_max = max(Diameter..cm.), diameter_min = min(Diameter..cm.))
+
+post_summary <- rbind(post_baseline_summary, post_15_summary, post_30_summary, post_45_summary)
+
+post_summary <- mutate(post_summary, ID = ID, condition = "POST", stage = c("0_LBNP", "15_LBNP", "30_LBNP", "45_LBNP"))
+
+#Combine and Output Summary File
+summary <- rbind(pre_summary, post_summary)
+summary <- select(summary, "ID","condition", "stage", "diameter_count", "diameter_mean", "diameter_median", "diameter_SD", "diameter_max", "diameter_min")
+
+##Change the file path below before outputting this file.  Direct to the correct folder and enter your file name as "NVTID_diameter_summary.csv"
+
+write.csv(summary, file = paste(dirname(file_pre),"/",f_out, sep = ""), row.names = FALSE)
+```
