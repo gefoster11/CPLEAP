@@ -14,7 +14,7 @@
 BP_Correction <- function(bp_correct_t_f, t_start, t_end, SBP, DBP, f_out, col_names) {
         library(dplyr)
         f_in <- file.choose()
-        data <- read.delim(f_in, header = FALSE, na.strings = "#NUM!", colClasses = "numeric", skip = 3, col.names = col_names)
+        data <- read.delim(f_in, header = FALSE, na.strings = "", colClasses = "numeric", skip = 3, col.names = col_names)
         
         if(bp_correct_t_f){
           SBP_ave <- sum(SBP)/length(SBP)

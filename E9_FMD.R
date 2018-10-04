@@ -173,12 +173,12 @@ condition <- c("baseline", "peak_diameter")
 
 summary_out <- cbind(id, time, condition, summary)
 
-pdf(file = paste(dirname(chart_file), "/", id, "_", time, "_FMD.pdf", sep = ""), width = 8.5, height = 11)
+pdf(file = paste(id, "_", time, "_FMD.pdf", sep = ""), width = 8.5, height = 11)
 grid.arrange(grobs = grobs.list, nrow = 7, ncol = 1, family = "Arial Unicode MS", paper = "special", onefile = FALSE)
 dev.off()
 
 #embed_fonts(paste(dirname(chart_file), "/", id, "_", time, "_FMD.pdf", sep = ""))
 
 #Output file
-write.csv(summary_out, file = paste(dirname(chart_file), "/", id, "_", time, "_FMD.csv", sep = ""), row.names = FALSE, quote = FALSE)
+write.csv(summary_out, file = paste(id, "_", time, "_FMD.csv", sep = ""), row.names = FALSE, quote = FALSE)
 }
