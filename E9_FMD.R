@@ -10,8 +10,11 @@
 
 FMD_Analysis <- function(id, time){
   
-  #id <- "GEF"
-  #time <- "1"
+# id <- "GEF"
+# time <- "1"
+  
+#clear the workspace
+# rm(list = ls())  
   
 ##Load Libraries
 # Load packages (checks if they are installed and loads the librarys)
@@ -54,7 +57,6 @@ for(i in 1:nrow(df_diam)){
     df_diam$time[i] <- df_diam$time[i] + 240}
   }
 
-
 #merge dataframes
 df <- approx(df_diam$time, df_diam$diameter, xout = df_chart$time, rule = 2, method = "linear", ties = mean)
 df <- as.data.frame(df, col.names = c("time", "diameter"))
@@ -84,19 +86,8 @@ for(i in 1:nrow(df)){
       }
 }
 
-#for(i in 1:nrow(df)){
-#  if(df$SR[i] < 0){
-#    df$SR_NEG[i] <- df$SR[i]
-#    df$SRAUC_NEG[i] <- df$SR[i]
-#    } 
-#  else {
-#    df$SR_NEG[i] <- NA
-#    df$SRAUC_NEG[i] <- 0
-#   }
-#  }
-
 #pull baseline data
-df_baseline <- filter(df, time >1.5 & time <= 60)
+df_baseline <- filter(df, time >3 & time <= 60)
 baseline <- summarise_all(df_baseline[c(-4, -11, -13)], .funs = "mean", na.rm = TRUE)
 baseline <- mutate(baseline, OSI = (abs(SR_NEG)/(abs(SR_POS) + abs(SR_NEG)))*100)
 
@@ -128,7 +119,7 @@ summary$FMD_percent_SRAUC <- c(NA, ((summary$diameter[2] - summary$diameter[1])/
 #Calculate Reactive Hypermia Parameters
 summary$time_peak_BF <- c(NA, mean(df_response$time[df_response$BF == max(df_response$BF)]))
 
-summary$BF_peak <- c(NA, mean(df_response$BF[df_response$time > (time_peak_BF - 2.5) & df_response$time < (time_peak_BF + 2.5)]))
+summary$BF_peak <- c(NA, mean(df_response$BF[df_response$time > (summary$time_peak_BF[2]) & df_response$time < (summary$time_peak_BF[2] + 5)]))
 
 summary$BF_AUC <- c(NA, AUC(df_response$time, df_response$BF, method = "trapezoid"))
 
@@ -164,8 +155,6 @@ p_SR_mean <- ggplot(data = df, aes_string(x = "time", y = "SR_mean")) +
   geom_line() +
   geom_point(data = summary, colour = "red", size = 3)
 
-multiplot(p_velocity, p_V_mean, p_diameter, p_diameter_smooth, p_BF, p_SR, p_SR_mean)
-
 
 ##Save and output figure and data table.
 plots.list <- list(p_velocity, p_V_mean, p_diameter, p_diameter_smooth, p_BF, p_SR, p_SR_mean)
@@ -184,12 +173,12 @@ condition <- c("baseline", "peak_diameter")
 
 summary_out <- cbind(id, time, condition, summary)
 
-quartz(type = 'pdf', file = paste(dirname(chart_file), "/", id, "_", time, "_FMD.pdf", sep = ""), width = 8.5, height = 11)
+pdf(file = paste(dirname(chart_file), "/", id, "_", time, "_FMD.pdf", sep = ""), width = 8.5, height = 11)
 grid.arrange(grobs = grobs.list, nrow = 7, ncol = 1, family = "Arial Unicode MS", paper = "special", onefile = FALSE)
 dev.off()
-embed_fonts(paste(dirname(chart_file), "/", id, "_", time, "_FMD.pdf", sep = ""))
+
+#embed_fonts(paste(dirname(chart_file), "/", id, "_", time, "_FMD.pdf", sep = ""))
 
 #Output file
 write.csv(summary_out, file = paste(dirname(chart_file), "/", id, "_", time, "_FMD.csv", sep = ""), row.names = FALSE, quote = FALSE)
-
 }
