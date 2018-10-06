@@ -87,9 +87,15 @@ for(i in 1:nrow(df)){
 }
 
 #pull baseline data
-df_baseline <- filter(df, time >3 & time <= 60)
+df_baseline <- dplyr::filter(df, time >10 & time <= 60)
 baseline <- summarise_all(df_baseline[c(-4, -11, -13)], .funs = "mean", na.rm = TRUE)
 baseline <- mutate(baseline, OSI = (abs(SR_NEG)/(abs(SR_POS) + abs(SR_NEG)))*100)
+
+#replace mean diameter data with values from r-wave
+df_baseline_rwave <- df_baseline[df_baseline$comments != "",]
+baseline_rwave <- summarise_all(df_baseline_rwave[c(-4, -11, -13)], .funs = "mean", na.rm = TRUE)
+baseline$diameter <- baseline_rwave$diameter
+baseline$diameter_smooth <- baseline_rwave$diameter_smooth
 
 #calculate SRAUC
 baseline$SRAUC <- AUC(df_baseline$time, df_baseline$SR, method = "trapezoid")
@@ -97,18 +103,25 @@ baseline$SRAUC_POS <- AUC(df_baseline$time, df_baseline$SRAUC_POS, method = "tra
 baseline$SRAUC_NEG <- AUC(df_baseline$time, df_baseline$SRAUC_NEG, method = "trapezoid")
 baseline$time_to_peak <- NA
 
+
 #RESPONSE DATA
-df_response <- filter(df, time > 360)
-time_peak_diameter <- df_response$time[df_response$diameter_smooth == max(df_response$diameter_smooth)]
-df_peak_diameter <- filter(df_response, time > (time_peak_diameter-2.5) & time < (time_peak_diameter+2.5))
-response_peak_diameter <- summarise_all(df_peak_diameter[c(-4,-11,-13)], .funs = "mean", na.rm = TRUE)
-response_peak_diameter <- mutate(response_peak_diameter, OSI = (abs(SR_NEG)/(abs(SR_POS) + abs(SR_NEG)))*100)
+df_response <- dplyr::filter(df, time > 360)
+time_peak_diameter <- df_response$time[df_response$diameter_smooth == max(df_response$diameter_smooth[df_response$comments != ""])]
+df_peak_diameter <- dplyr::filter(df_response, time > (time_peak_diameter[1]-2.5) & time < (time_peak_diameter[1]+2.5))
+response_peak_diameter <- dplyr::summarise_all(df_peak_diameter[c(-4,-11,-13)], .funs = "mean", na.rm = TRUE)
+response_peak_diameter <- dplyr::mutate(response_peak_diameter, OSI = (abs(SR_NEG)/(abs(SR_POS) + abs(SR_NEG)))*100)
+
+#replace response data mean diameter data with values from r-wave
+df_peak_rwave <- df_peak_diameter[df_peak_diameter$comments != "",]
+response_rwave <- summarise_all(df_peak_rwave[c(-4, -11, -13)], .funs = "mean", na.rm = TRUE)
+response_peak_diameter$diameter <- response_rwave$diameter
+response_peak_diameter$diameter_smooth <- response_rwave$diameter_smooth
 
 #calculate SRAUC to peak diameter
 response_peak_diameter$SRAUC <- AUC(df_response$time, df_response$SR, method = "trapezoid")
 response_peak_diameter$SRAUC_POS <- AUC(df_response$time, df_response$SRAUC_POS, method = "trapezoid")
 response_peak_diameter$SRAUC_NEG <- AUC(df_response$time, df_response$SRAUC_NEG, method = "trapezoid")
-response_peak_diameter$time_to_peak <- time_peak_diameter - df_response$time[1]
+response_peak_diameter$time_to_peak <- time_peak_diameter[1] - df_response$time[1]
 
 #MERGE baseline and Peak Diameter
 summary <- rbind(baseline, response_peak_diameter)
@@ -127,33 +140,33 @@ summary$BF_AUC <- c(NA, AUC(df_response$time, df_response$BF, method = "trapezoi
 #check data
 p_velocity <- ggplot(data = df, aes_string(x = "time", y = "velocity")) +
   geom_line() + 
-  geom_point(data = summary, colour = "red", size = 3)
+  geom_point(data = summary, colour = "red", size = 2)
 
 p_V_mean <- ggplot(data = df, aes_string(x = "time", y = "V_mean")) +
   geom_line() +
-  geom_point(data = summary, colour = "red", size = 3)
+  geom_point(data = summary, colour = "red", size = 2)
 
 p_diameter <- ggplot(data = df, aes_string(x = "time", y = "diameter")) +
   geom_line() +
-  geom_point(data = summary, colour = "red", size = 3) 
+  geom_point(data = summary, colour = "red", size = 2) 
   
 
 p_diameter_smooth <- ggplot(data = df, aes_string(x = "time", y = "diameter_smooth")) +
   geom_line() +
-  geom_point(data = summary, colour = "red", size = 3)
+  geom_point(data = summary, colour = "red", size = 2)
 
 p_BF <- ggplot(data = df, aes_string(x = "time", y = "BF")) +
   geom_line() +
-  geom_point(data = summary, colour = "red", size = 3) + 
-  geom_point(data = summary, aes_string(x = "time_peak_BF", y = "BF_peak"), colour = "blue", size = 3)
+  geom_point(data = summary, colour = "red", size = 2) + 
+  geom_point(data = summary, aes_string(x = "time_peak_BF", y = "BF_peak"), colour = "blue", size = 2)
 
 p_SR <- ggplot(data = df, aes_string(x = "time", y = "SR")) +
   geom_line() +
-  geom_point(data = summary, colour = "red", size = 3)
+  geom_point(data = summary, colour = "red", size = 2)
 
 p_SR_mean <- ggplot(data = df, aes_string(x = "time", y = "SR_mean")) +
   geom_line() +
-  geom_point(data = summary, colour = "red", size = 3)
+  geom_point(data = summary, colour = "red", size = 2)
 
 
 ##Save and output figure and data table.
