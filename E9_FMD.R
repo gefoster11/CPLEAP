@@ -52,10 +52,8 @@ df_diam <- read.csv(diam_file, skip = 83)
 df_diam <- df_diam[,1:2]
 names(df_diam) <- c("time", "diameter")
 
-for(i in 1:nrow(df_diam)){
-  if(df_diam$time[i] > 60){
-    df_diam$time[i] <- df_diam$time[i] + 240}
-  }
+df_diam$time <- ifelse(df_diam$time > 60, df_diam$time + 240, df_diam$time)
+
 
 #merge dataframes
 df <- approx(df_diam$time, df_diam$diameter, xout = df_chart$time, rule = 2, method = "linear", ties = mean)
@@ -71,20 +69,31 @@ df$SR_mean <- (4*df$V_mean)/df$diameter
 df$diameter_smooth <- SMA(df$diameter, n=300)
 
 #calculate SR_POS and SR_NEG
-for(i in 1:nrow(df)){
-  if(df$SR[i] > 0){
-    df$SR_POS[i] <- df$SR[i]
-    df$SRAUC_POS[i] <- df$SR[i]
-    df$SR_NEG[i] <- NA
-    df$SRAUC_NEG[i] <- 0
-    }
-  if(df$SR[i] < 0){
-      df$SR_POS[i] <- NA
-      df$SRAUC_POS[i] <- 0
-      df$SR_NEG[i] <- df$SR[i]
-      df$SRAUC_NEG[i] <- df$SR[i]
-      }
-}
+# for(i in 1:nrow(df)){
+#   if(df$SR[i] > 0){
+#     df$SR_POS[i] <- df$SR[i]
+#     df$SRAUC_POS[i] <- df$SR[i]
+#     df$SR_NEG[i] <- NA
+#     df$SRAUC_NEG[i] <- 0
+#     }
+#   if(df$SR[i] < 0){
+#       df$SR_POS[i] <- NA
+#       df$SRAUC_POS[i] <- 0
+#       df$SR_NEG[i] <- df$SR[i]
+#       df$SRAUC_NEG[i] <- df$SR[i]
+#       }
+# }
+
+df$SR_POS[df$SR > 0] <- df$SR[df$SR > 0]
+df$SRAUC_POS[df$SR > 0] <- df$SR[df$SR > 0]
+df$SR_NEG[df$SR > 0] <- NA
+df$SRAUC_NEG[df$SR > 0] <- 0
+
+df$SR_POS[df$SR < 0] <- NA
+df$SRAUC_POS[df$SR < 0] <- 0
+df$SR_NEG[df$SR < 0] <- df$SR[df$SR < 0]
+df$SRAUC_NEG[df$SR < 0] <- df$SR[df$SR < 0]
+
 
 #pull baseline data
 df_baseline <- dplyr::filter(df, time >10 & time <= 60)
