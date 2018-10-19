@@ -6,12 +6,14 @@
 
 ##Provide the id and the measurement time point.  time point = "1" for the first measurement.
 
-##eg.  FMD_Analysis(id = "GEF", time = "1")
+##eg.  FMD_Analysis(id = "GEF", time = "1", t_start = 360, t_end = 540)
 
-FMD_Analysis <- function(id, time){
+FMD_Analysis <- function(id, time, t_start, t_end){
   
 # id <- "GEF"
 # time <- "1"
+# t_start = 380
+# t_end = 500
   
 #clear the workspace
 # rm(list = ls())  
@@ -115,8 +117,10 @@ baseline$time_to_peak <- NA
 
 #RESPONSE DATA
 df_response <- dplyr::filter(df, time > 360)
-time_peak_diameter <- df_response$time[df_response$diameter_smooth == max(df_response$diameter_smooth[df_response$comments != ""])]
+df_response_narrow <- dplyr::filter(df, time > t_start & time < t_end)
+time_peak_diameter <- df_response_narrow$time[df_response_narrow$diameter_smooth == max(df_response_narrow$diameter_smooth[df_response_narrow$comments != ""])]
 df_peak_diameter <- dplyr::filter(df_response, time > (time_peak_diameter[1]-2.5) & time < (time_peak_diameter[1]+2.5))
+df_response_to_peak_diameter <- dplyr::filter(df_response, time <= time_peak_diameter[1])
 response_peak_diameter <- dplyr::summarise_all(df_peak_diameter[c(-4,-11,-13)], .funs = "mean", na.rm = TRUE)
 response_peak_diameter <- dplyr::mutate(response_peak_diameter, OSI = (abs(SR_NEG)/(abs(SR_POS) + abs(SR_NEG)))*100)
 
@@ -127,9 +131,9 @@ response_peak_diameter$diameter <- response_rwave$diameter
 response_peak_diameter$diameter_smooth <- response_rwave$diameter_smooth
 
 #calculate SRAUC to peak diameter
-response_peak_diameter$SRAUC <- AUC(df_response$time, df_response$SR, method = "trapezoid")
-response_peak_diameter$SRAUC_POS <- AUC(df_response$time, df_response$SRAUC_POS, method = "trapezoid")
-response_peak_diameter$SRAUC_NEG <- AUC(df_response$time, df_response$SRAUC_NEG, method = "trapezoid")
+response_peak_diameter$SRAUC <- AUC(df_response_to_peak_diameter$time, df_response_to_peak_diameter$SR, method = "trapezoid")
+response_peak_diameter$SRAUC_POS <- AUC(df_response_to_peak_diameter$time, df_response_to_peak_diameter$SRAUC_POS, method = "trapezoid")
+response_peak_diameter$SRAUC_NEG <- AUC(df_response_to_peak_diameter$time, df_response_to_peak_diameter$SRAUC_NEG, method = "trapezoid")
 response_peak_diameter$time_to_peak <- time_peak_diameter[1] - df_response$time[1]
 
 #MERGE baseline and Peak Diameter
