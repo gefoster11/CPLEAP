@@ -1,10 +1,10 @@
-##Load labchart text file including time, velocity, AVG_velocity, comments outputed at 100 Hz with header.  In lab chart - enter comments at "cuff_up" and "cuff_off".  Ensure the cyclic parameters for calculating AVG_velocity are correct.  Then select from start of each file to 540s later using the "find" command.  This period of data should correspond exactly with the 9 minute video recording of diameter.
+##Load labchart text file including time, velocity, AVG_velocity, comments outputed at 100 Hz with header. Ensure the cyclic parameters for calculating AVG_velocity are correct.  Then select from start of each file to 540s later using the "find" command.  This period of data should correspond exactly with the 9 minute video recording of diameter.
 
-##Load diameter data which corresponds to the loaded labchart text file which has been processed by edge detection software.
+##Load diameter data which corresponds to the loaded labchart text file which has been processed by edge detection software.  The diameter file must be created from edge detection software and bad data must be removed using the erase tool.  However, the cleaned diameter data does not automatically get outputed from the outputfile.  The copy graphs option must be utilized and the cleaned diameter file must be pasted into the outputfile prior to running this FMD function script.
 
 ##When running this function you will first be asked to load your labchart text file and then your diameter.csv file
 
-##Provide the id and the measurement time point.  time point = "1" for the first measurement.
+##Provide the id and the measurement time point.  time point = "1" for the first measurement.  t_start and t_end are the search window used for narrowing in on the correct FMD peak. begin by selecting t_start to 360 and t_end to 540.  If the correct peak is not detected by the function then adjust your times accordingly to encapsulate the correct peak.
 
 ##eg.  FMD_Analysis(id = "GEF", time = "1", t_start = 360, t_end = 540)
 
