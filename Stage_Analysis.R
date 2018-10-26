@@ -2,7 +2,7 @@
 ##This function will output a stage data analysis given a breath, beat, and burst file cleaned within Silo.  This function outputs data figures.
 #Provide this function with (1) ID = subject ID, exp_condition = "IH" or "control", pre_time = vector of desired start bins for pre test, post_time = vector of desired start bins for post test.  The analysis produced 60s bins for the NVT study.
 
-#eg. stage_analysis(ID = "NVT06", exp_condition = "IH", pre_time = c(154.7499, 893.4968307, 1126.523196, 1346.96465, 1561.606437), post_time = c(4281.206337, 4322.579026, 4544.593981, 4753.662013, 4969.894556))
+#eg. stage_analysis(ID = "NVT29", exp_condition = "control", pre_time = c(7252.103108,7794.572927,8039.196806,8255.402579,8461.927909), post_time = c(11301.8079,11438.02105,11663.94034,11879.46026,12079.16884))
 
 stage_analysis <- function(ID, exp_condition, pre_time, post_time){
 library(dplyr)
@@ -26,9 +26,9 @@ diameter_data <- rbind(pre_diameter_data, post_diameter_data)
 #PRE- Load DATA
 print("select file directory containing cleaned breath, beat, and burst files")
 setwd(dirname(file.choose()))
-pre_breath <- read.csv(file = "breath_NVT06_pre_IH-clean.csv")
-pre_beat <- read.csv(file = "beat_NVT06_pre_IH-clean.csv")
-pre_burst <- read.csv(file = "burst_NVT06_pre_IH-clean.csv")
+pre_breath <- read.csv(file = paste("breath_", ID, "_pre_", exp_condition, "-clean.csv", sep = ""))
+pre_beat <- read.csv(file = paste("beat_", ID, "_pre_", exp_condition, "-clean.csv", sep = ""))
+pre_burst <- read.csv(file = paste("burst_", ID, "_pre_", exp_condition, "-clean.csv", sep = ""))
 
 #PRE - Generate Requested Data Averages for burst file
 condition <- "PRE"
@@ -66,9 +66,9 @@ pre_stage <- cbind(ID, exp_condition, condition, stage, pre_breath_stage, pre_be
 pre_stage <- mutate(pre_stage, VT = VT*-1, burst_frequency = nbursts, burst_incidence = (burst_frequency/HR)*100, total_MSNA = MSNA_Amplitude*burst_frequency, total_normalized_MSNA = MSNA_Normalized_Amplitude*burst_frequency)
 
 #POST- Load DATA
-post_breath <- read.csv(file = "breath_NVT06_post_IH-clean.csv")
-post_beat <- read.csv(file = "beat_NVT06_post_IH-clean.csv")
-post_burst <- read.csv(file = "burst_NVT06_post_IH-clean.csv")
+post_breath <- read.csv(file = paste("breath_", ID, "_post_", exp_condition, "-clean.csv", sep = ""))
+post_beat <- read.csv(file = paste("beat_", ID, "_post_", exp_condition, "-clean.csv", sep = ""))
+post_burst <- read.csv(file = paste("burst_", ID, "_post_", exp_condition, "-clean.csv", sep = ""))
 
 #POST - Generate Requested Data Averages for burst file
 condition <- "POST"
